@@ -2,7 +2,7 @@
 
 #######################################
 #
-#                               SENTDER                                                              
+#                               SENTDER
 #                                v 1.0
 #
 #######################################
@@ -11,6 +11,7 @@ import socket
 from hashlib import md5
 import struct
 from time import sleep
+import sys
 
 global _username_
 global _passwd_
@@ -50,7 +51,7 @@ def send_mail(s):
         mail_body = input("Message : ")
         mail_size = len(mail_body)
         size_username = len(username)
-        print(_headers_)
+        #print(_headers_)
         s.send(_headers_)
         s.send(("SendMail").encode())
         sleep(1)
@@ -93,7 +94,7 @@ def register(s):
         data_formatted = _username_ + ";" + _passwd_
         s.send(data_formatted.encode())
         resp = s.recv(15360)
-        print(str(resp))
+        #print(str(resp))
         a,b,c,d,e,f,serv_resp = struct.unpack("<BBBBHH5s",resp)
         if(serv_resp.decode() == "ADDED"):
                 print("[*] Registered! You may login")
@@ -119,8 +120,13 @@ def login(s):
                 sleep(2)
                 details_packet = struct.pack("<%ds%ds"%(int(size_username),int(size_passwd)),_username_.encode("utf-8"),_passwd_.encode("utf-8"))
                 s.send(details_packet)
-                print("Logged in!")
-                mails(s)
+                sleep(1)
+                if(s.recv(1024).decode() == 'SUCCESS'):
+                    print("Logged in!")
+                    mails(s)
+                else:
+                    print("\n\nInvalid Username/Password")
+                    sys.exit(0)
 
 def get_option(s):
         print("1) Login")
@@ -131,7 +137,7 @@ def get_option(s):
                 #print("Registering..")
                 enc = ("R").encode("utf-8")
                 reg_packet = struct.pack("<1s",enc)
-                print(str(reg_packet))
+                #print(str(reg_packet))
                 s.send(reg_packet)
                 register(s)
         if(int(opt) == 1):

@@ -1,10 +1,10 @@
 #Author : Devesh Shah
 
 #######################################
-#									  #					
-#				SENTDER 			  # 						
+#									  #
+#				SENTDER 			  #
 #				 v 1.0				  #
-#									  #					
+#									  #
 #######################################
 
 import socket
@@ -14,8 +14,8 @@ import os
 from threading import Thread
 from time import sleep
 
-global _username_ 
-global _passwd_ 
+global _username_
+global _passwd_
 global _headers_
 _headers_ = struct.pack("<BBBBHH",2,0,0,3,2,1)
 
@@ -41,20 +41,20 @@ def check_req(client):
 	global _headers_
 	try:
 		data = client.recv(10240)
-		print(str(len(data)) + str(data))
+		#print(str(len(data)) + str(data))
 		headers = struct.unpack("<BBBBHH",data)
 		if(headers[0] == 2 and headers[2] == 0 and headers[4] == 2):
 			client.send(_headers_ + ("TYPE").encode())
 			data = client.recv(10240)
-			print(str(data))
+			#print(str(data))
 			req_type = struct.unpack("<1s",data)
 			return req_type[0].decode()
 	except Exception as e:
 		print("Error in check_req : " + str(e))
 
 def validate(user,passwd):
-	global _username_ 
-	global _passwd_ 
+	global _username_
+	global _passwd_
 	try:
 		file = open("creds.bin",'r')
 		data = file.read()
@@ -75,41 +75,45 @@ def validate(user,passwd):
 		return False
 
 def verify(client):
-	global _username_ 
-	global _passwd_ 
+	global _username_
+	global _passwd_
 	global _headers_
 	try:
 		try:
-			print("In verify")
+			#print("In verify")
 			data = client.recv(10240)
 			headers = struct.unpack("<BBBBHH",data)
 			if(headers[0] == 2 and headers[2] == 0 and headers[4] == 2):
-				print("Verified headers")
+				#print("Verified headers")
 				client.send(_headers_ + ("AUTHENTICATE").encode())
-				print("sent mail_packet")
+				#print("sent mail_packet")
 				size = client.recv(10240)
-				print("Size received")
+				#print("Size received")
 				size_details = struct.unpack("<HH",size)
-				print("unpacked size")
+				#print("unpacked size")
 				size_username = int(size_details[0])
 				size_passwd = int(size_details[1])
-				print(str(size_username))
+				#print(str(size_username))
 				#sleep(2)
 				so = 1024*80
 				details = client.recv(102400)
-				print("details received")
+				#print("details received")
 				client_details = struct.unpack("%ds%ds"%(size_username,size_passwd),details)
-				print("Details unpacked")
+				#print("Details unpacked")
 				username = str(client_details[0].decode())
 				passwd = str(client_details[1].decode())
-				print("Values assigned ")
-				print("username : %s passwd : %s"%(username,passwd))
+				#print("Values assigned ")
+				#print("username : %s passwd : %s"%(username,passwd))
 				if(validate(username,passwd)):
-					print("validated")
+					#print("validated")
 					_username_ = username
 					_passwd_ = passwd
+					sleep(1)
+					client.send(("SUCCESS").encode())
 					return True
 				else:
+					sleep(1)
+					client.send('INVALID PARAMETERS'.encode())
 					#print("Error : ")
 					return False
 			else:
@@ -130,13 +134,13 @@ def create_container(name):
 def send_mail(s):
 	try:
 		data = s.recv(1024)
-		print(data)
+		#print(data)
 		size_username,size_mail_body = struct.unpack("<HH",data)
 		mail = s.recv(20480)
 		username,mail_content = struct.unpack("<%ds%ds"%(size_username,size_mail_body),mail)
 		username = username.decode()
 		mail_content = mail_content.decode()
-		print("Mail to : " + str(username))
+		#print("Mail to : " + str(username))
 		os.chdir("Mails")
 		file_name = md5(username.encode("utf-8")).hexdigest() + ".bin"
 		if(os.path.isfile(file_name) != True):
@@ -150,8 +154,8 @@ def send_mail(s):
 		print("Error in send mail : " + str(e))
 
 def check_mail(username,client):
-	global _username_ 
-	global _passwd_ 
+	global _username_
+	global _passwd_
 	global _headers_
 	os.getcwd()
 	os.chdir("Mails")
@@ -165,7 +169,7 @@ def check_mail(username,client):
 				data = file.read()
 				total_mails = data.split(';')
 				user_mails = str(len(total_mails) - 1)
-				print("Total mails for " + _username_ + " : " + user_mails)
+				#print("Total mails for " + _username_ + " : " + user_mails)
 				if(len(total_mails) == 0 or len(total_mails) == 1):
 					msg = "N"
 					client.send(_headers_ + msg.encode())
@@ -185,7 +189,7 @@ def check_mail(username,client):
 					mail_packet = struct.pack("%ds"%(int(mail_length)), mail.encode("utf-8"))
 					client.send(mail_packet)
 					sleep(2)
-					print("Mail sent to client")
+					#print("Mail sent to client")
 					#sleep(3)
 				client.close()
 			except Exception as e:
@@ -228,7 +232,7 @@ def opt_mail(s):
 			#print('req received')
 			#print(str(type_mail))
 		if(type_mail.decode() == "SendMail"):
-			print("Sending...")
+			#print("Sending...")
 			return True
 		if(type_mail.decode() == "CheckMail"):
 			return False
@@ -242,12 +246,12 @@ def client_hander(client):
 		if(str(check_req(client)) == 'R'):
 			register(client)
 		if(verify(client)):
-			print("User logged in")
+			#print("User logged in")
 			if(opt_mail(client) != True):
-				print("Checking Mail")
+				#print("Checking Mail")
 				check_mail(_username_,client)
 			else:
-				print("Sending mail")
+				#print("Sending mail")
 				send_mail(client)
 				#check_mail(_username_,client)
 		else:
@@ -260,29 +264,145 @@ def client_hander(client):
 			#print("Error : " + str(ee))
 			client.close()
 
+def remove_entry(username):
+	file = open('creds.bin','r')
+	file2 = open("creds.bin.tmp",'w')
+	new_data = ""
+	for entry in file.read().split('!'):
+		data = entry.split(';')
+		if(data[0] == username):
+			continue
+		if(data[0] == ""):
+			continue
+		new_data += entry + '!'
+	#print(new_data)
+	file.close()
+	file2.write(new_data)
+	file2.close()
+	#file.close()
+	os.remove("creds.bin")
+	os.rename("creds.bin.tmp","creds.bin")
 
-def start_server():
-	global _username_ 
-	global _passwd_ 
+def list_databse_users():
+	file = open("creds.bin",'r')
+	data = file.read()
+	entries = data.split('!')
+	num_entries = len(entries)
+	usernames = []
+	for entry in entries:
+		info = entry.split(";")
+		username = info[0]
+		usernames.append(username)
+	print("Total number of entries : %d"%(num_entries))
+	count = 1
+	user_dict = {}
+	for user in usernames:
+		if(user == ""):
+			continue
+		print("%d) %s"%(count,user))
+		user_dict[count] = user
+		count += 1
+	o = int(input("==>"))
+	seleted_username = user_dict.get(o)
+	print("Username : %s"%(seleted_username))
+	print("Action : Remove")
+	confirmation = input("Confirm (y/n) : ")
+	if(confirmation == 'y'):
+		file.close()
+		remove_entry(seleted_username)
+	if(confirmation == 'n'):
+		file.close()
+		return
+	file.close()
+
+def remove_user():
+	print("1) Get a list of all users in database")
+	print("2) Enter the username manually")
+	o = int(input("==>"))
+	if(o == 1):
+		list_databse_users()
+		pass
+	elif(o == 2):
+		username = input("Enter Username : ")
+		remove_entry(username)
+	else:
+		print("Invalid Option....\n")
+		remove_user()
+
+def create_new_user():
+	new_username = input("Enter new username : ")
+	new_passwd = input("Enter new password to set : ")
+	passwd_hash = md5(new_passwd.encode("utf-8")).hexdigest()
+	new_data = new_username + ';' + passwd_hash + '!'
+	file = open("creds.bin",'a')
+	file.write(new_data)
+	file.close()
+	print("User Created!")
+
+def check_user_mail():
+	os.chdir("Mails")
+	username = input("Enter username : ")
+	user_mail_file = open(md5(username.encode("utf-8")).hexdigest() + '.bin')
+	data = user_mail_file.read().split(';')
+	num_mails = len(data)
+	print("Mails for %s : "%(username))
+	count = 1
+	for mail in data:
+		print("%d) %s"%(count,mail))
+		count += 1
+
+def get_opt():
+	print("Select an option :")
+	print("1) Start Server Normally")
+	print("2) Remove user from database")
+	print("3) Create new user manually")
+	print("4) Check mail for a user")
+	o = input("==>")
+	o = int(o)
+	if(o == 1):
+		return 'S'
+	elif(o == 2):
+		return 'R'
+	elif(o == 3):
+		return 'N'
+	elif(o == 4):
+		return 'C'
+	else:
+		print("Invalid Option Please Select Again...\n")
+		get_opt()
+
+def start_interface():
+	global _username_
+	global _passwd_
 	#setup_mails()
-	s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-	s.bind(("127.0.0.1",2003))
-	s.listen(6)
+	opt = get_opt()
+	#print(opt)
+	if(opt == 'S'):
+		s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+		s.bind(("127.0.0.1",2003))
+		print("Server Started!")
+		s.listen(6)
+		while True:
+			try:
+				client,addr = s.accept()
+				print("[*] Connection from " + str(addr[0]))
+				client_thread = Thread(target=client_hander,args=(client,))
+				client_thread.start()
+				#client_hander(client)
+			except Exception as ee:
+				pass
+				#print("Error : " + str(ee))
+				s.close()
+	elif(opt == 'R'):
+		remove_user()
+	elif(opt == 'N'):
+		create_new_user()
+	elif(opt == 'C'):
+		check_user_mail()
 
-	while True:
-		try:
-			client,addr = s.accept()
-			print("[*] Connection from " + str(addr[0]))
-			client_thread = Thread(target=client_hander,args=(client,))
-			client_thread.start()
-			#client_hander(client)
-		except Exception as ee:
-			pass
-			#print("Error : " + str(ee))
-			s.close()
 
 def main():
-	start_server()
+	start_interface()
 
 if __name__ == '__main__':
 	main()
