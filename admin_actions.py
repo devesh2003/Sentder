@@ -2,6 +2,26 @@ import os
 from threading import Thread
 import sys
 from time import sleep
+import socket
+
+def send_users(s):
+	file = open("creds.bin",'r')
+	data = file.read()
+	entries = data.split('!')
+	#num_entries = len(entries) - 1
+	user_menu = ""
+	usernames = {}
+	count = 1
+	for entry in entries:
+		details = entry.split(';')
+		username = details[0]
+		if(username == ""):
+			continue
+		user_menu += "%d) %s"%(count,username)
+		usernames[count] = username
+		count += 1
+	file.close()
+	s.send(user_menu.encode())
 
 def check_username(usr):
 	file = open("creds.bin",'r')
@@ -22,11 +42,21 @@ def suspend_acc():
 	if(check_username(usrname)):
 		opt = input("Are you sure you want to Suspend %s ? (y/n)"%(usrname))
 		if(opt == 'y' or opt == 'yes'):
-			file = open('creds.bin','ra')
-			entries = file.read()
+			file = open('creds.bin','r')
+			file2 = open('creds.bin.tmp','w')
+			entries = file.read().split('!')
 			for entry in entries:
-				details = entry.strip('!').split(';')
-				
+				details = entry.split(';')
+				user = details[0]
+				if(user == usrname):
+					continue
+				data += entry + '!'
+			file2.write(data)
+			file2.close()
+			file.close()
+			os.remove('creds.bin')
+			os.rename("creds.bin.tmp","creds.bin")
+
 
 def clear_database():
 	pass

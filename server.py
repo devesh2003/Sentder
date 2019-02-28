@@ -13,6 +13,7 @@ from hashlib import md5
 import os
 from threading import Thread
 from time import sleep
+from SetupAdminSession import *
 
 global _username_
 global _passwd_
@@ -293,7 +294,7 @@ def list_databse_users():
 		info = entry.split(";")
 		username = info[0]
 		usernames.append(username)
-	print("Total number of entries : %d"%(num_entries))
+	print("Total number of entries : %d"%(num_entries-1))
 	count = 1
 	user_dict = {}
 	for user in usernames:
@@ -330,14 +331,19 @@ def remove_user():
 		remove_user()
 
 def create_new_user():
-	new_username = input("Enter new username : ")
-	new_passwd = input("Enter new password to set : ")
-	passwd_hash = md5(new_passwd.encode("utf-8")).hexdigest()
-	new_data = new_username + ';' + passwd_hash + '!'
-	file = open("creds.bin",'a')
-	file.write(new_data)
-	file.close()
-	print("User Created!")
+	try:
+		new_username = input("Enter new username : ")
+		new_passwd = input("Enter new password to set : ")
+		passwd_hash = md5(new_passwd.encode("utf-8")).hexdigest()
+		new_data = new_username + ';' + passwd_hash + '!'
+		file = open("creds.bin",'a')
+		file.write(new_data)
+		file.close()
+		print("User Created!")
+	except Exception as e:
+		print("Error : %s",str(e))
+		print("Plase retry")
+		create_new_user()
 
 def check_user_mail():
 	os.chdir("Mails")
@@ -390,11 +396,15 @@ def start_interface():
 				client_thread.start()
 				#client_hander(client)
 			except Exception as ee:
-				pass
+				print("Error : %s",str(ee))
+				print("\n\n\n Restarting server...")
+				sleep(3)
+				start_interface()
 				#print("Error : " + str(ee))
 				s.close()
 	elif(opt == 'R'):
-		remove_user()
+		task = Thread(target=remove_user(),args=())
+		task.start()
 	elif(opt == 'N'):
 		create_new_user()
 	elif(opt == 'C'):
