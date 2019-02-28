@@ -10,12 +10,25 @@ global session_cookie_packet
 session_cookie = sha1(keyword.encode("utf-8")).hexdigest()
 session_cookie_packet = struct.pack("<%ds"%(len(session_cookie)),str(session_cookie).encode())
 
+def verify_headers(a,b,c,d,e,f):
+    if(a == 2 and f == 1 and e == 2 and b == 0):
+        return True
+    else:
+        return False
 
 def verify_session(s):
+    global session_cookie
     try:
         s.send("VERIFY_SESSION".encode())
         sleep(2)
-        
+        data = s.recv(10240)
+        a,b,c,d,e,f,cookie = struct.unpack("<BBHHHH%ds"%(len(session_cookie)),data)
+        if(verify_headers(a,b,c,d,e,f) == True and cookie == session_cookie):
+            pass
+        else:
+            #Terminate session
+            pass
+            return
     except Exception as e:
         #raise
         print("[*] Error : %s In verifying admin session"%(str(e)))
@@ -40,8 +53,11 @@ def send_menu(s):
         verify_session(s)
         send_users(s)
     elif(serv_resp == 2):
+        verify_session(s)
         pass
     elif(serv_resp == 3):
+        verify_session(s)
         pass
     elif(serv_resp == 4):
+        verify_session(s)
         pass
