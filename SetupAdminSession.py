@@ -2,6 +2,8 @@ import socket
 import struct
 from admin_actions import *
 from hashlib import sha1
+from interactive_interface import *
+from server import remove_entry
 
 global _headers_
 keyword = "deveshbaapo"
@@ -33,6 +35,19 @@ def verify_session(s):
         #raise
         print("[*] Error : %s In verifying admin session"%(str(e)))
 
+def check_username(usrname):
+    pass
+
+def remove_user(s,username="null"):
+    if(username == "null"):
+        username = get_input(s,"Enter Username : ")
+    if(check_username(username)):
+        s.send('OK'.encode())
+        remove_entry(username)
+    else:
+        s.send('ERROR'.encode())
+        username = get_input(s,"Invalid Username Please enter a valid username \n Username : ")
+        remove_user(s,username)
 
 #BETA (Not Funtional)
 def send_menu(s):
@@ -45,15 +60,17 @@ def send_menu(s):
     menu += "2) Delete a user"
     menu += "3) Reboot the server"
     menu += "4) FACTORY RESET (Caution : This Will Wipe The Whole Server)"
-    s.send(menu.encode())
-    sleep(2)
-    data = s.recv(1024)
-    a,b,c,d,e,f,serv_resp = struct.unpack("<BBBBHHH",data)
+    serv_resp = get_input(s,menu)
+    #s.send(menu.encode())
+    #sleep(2)
+    #data = s.recv(1024)
+    #a,b,c,d,e,f,serv_resp = struct.unpack("<BBBBHHH",data)
     if(serv_resp == 1):
         verify_session(s)
         send_users(s)
     elif(serv_resp == 2):
         verify_session(s)
+        remove_user(s)
         pass
     elif(serv_resp == 3):
         verify_session(s)

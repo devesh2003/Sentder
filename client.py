@@ -12,6 +12,7 @@ from hashlib import md5
 import struct
 from time import sleep
 import sys
+from interactive_interface import *
 
 global _username_
 global _passwd_

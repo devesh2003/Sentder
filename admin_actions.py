@@ -31,14 +31,14 @@ def check_username(usr):
 		data = entry.split(";")
 		username = data[0]
 		if(username == usr):
-			return True
 			file.close()
-	return False
+			return True
 	file.close()
+	return False
 
-def suspend_acc():
-	print("Suspend Account Process Started...")
-	usrname = input("Enter username : ")
+def suspend_acc(usrname):
+	#print("Suspend Account Process Started...")
+	#usrname = input("Enter username : ")
 	if(check_username(usrname)):
 		opt = input("Are you sure you want to Suspend %s ? (y/n)"%(usrname))
 		if(opt == 'y' or opt == 'yes'):
