@@ -7,12 +7,16 @@
 #									  #
 #######################################
 
+#Built with Python 3.7
+import sys
 import socket
 import struct
 from hashlib import md5
 import os
 from threading import Thread
 from time import sleep
+
+sys.path.append("/Users/pathik/Desktop/Sentder/deps")
 from SetupAdminSession import *
 from interactive_interface import *
 
@@ -72,7 +76,7 @@ def validate(user,passwd):
 		return False
 
 	except Exception as c:
-		print("Error : " + c)
+		print("Error : " + str(c))
 		file.close()
 		return False
 
@@ -265,6 +269,7 @@ def client_hander(client):
 			pass
 			#print("Error : " + str(ee))
 			client.close()
+
 
 def remove_entry(username):
 	file = open('creds.bin','r')

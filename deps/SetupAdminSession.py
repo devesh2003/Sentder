@@ -3,7 +3,9 @@ import struct
 from admin_actions import *
 from hashlib import sha1
 from interactive_interface import *
-from server import remove_entry
+import sys
+sys.path.append("/Users/pathik/Desktop/Sentder/")
+import server
 
 global _headers_
 keyword = "deveshbaapo"
@@ -43,7 +45,7 @@ def remove_user(s,username="null"):
         username = get_input(s,"Enter Username : ")
     if(check_username(username)):
         s.send('OK'.encode())
-        remove_entry(username)
+        server.remove_entry(username)
     else:
         s.send('ERROR'.encode())
         username = get_input(s,"Invalid Username Please enter a valid username \n Username : ")
