@@ -1,6 +1,7 @@
 from tkinter import *
 from server import validate
 from deps import hash
+from deps.GUI_deps import frames
 
 def login(username,passwd):
     passwd = hash.md5_hash(passwd)
@@ -61,3 +62,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+#root = Tk()
+#frames.Window(master=root,title="Module",size="580x400", icon="C:/Users/pathik/Desktop/Sentder/deps/icon.ico")
